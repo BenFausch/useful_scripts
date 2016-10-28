@@ -4,7 +4,6 @@
 /**
  * RSS Shortcode.
  *
- * @package breaking_views_2015
  */
 
 function get_rss( $atts) {
@@ -111,23 +110,25 @@ $(this).html(container);
 <?php
    
 /**
- * Breaking Views User Export
+ * User Export
  * Admin screen that exports user data from Auth0
  *
- * @package breaking_views_2015
  */
 get_header();
 
 //array of user ids without 'Auth0|' 
-$userArray = array('57dc24f48b383e6f5830f119','56f5657ea1cfa1ba113711e0');
+$userArray = array('userID1','userID2');
                     
 
 foreach($userArray as $user){
 
 echo ('Updating user ID: '.$user."<br><br>");
 
+
+///////you'll need to get an authorization bearer token from the Auth0 api sandbox (token generator) to put in $cmd
+
 //run curl to update user metadata
-$cmd = ' curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJKdFV3V01JMWZkOThEbUpsVmEyUjJDSDlsUDRLWDBSNSIsInNjb3BlcyI6eyJ1c2VycyI6eyJhY3Rpb25zIjpbInVwZGF0ZSJdfX0sImlhdCI6MTQ3Mzk1ODY5OSwianRpIjoiNDFkMDI0OTQ1NGIwYTJjZTI4NTc4ODYxNjBkODYxZWYifQ.Knz0MQVPIQvuRgf73ZHH5712KPKUbLOC_QQxPs8DMCE" -X PATCH  -H "Content-Type: application/json" -d \'{"user_metadata":{"account_type":"VIP", "vip":null}}\' https://breakingviews.auth0.com/api/v2/users/auth0%7C'.$user;
+$cmd = ' curl -H "Authorization: Bearer INSERTBEARER HERE" -X PATCH  -H "Content-Type: application/json" -d \'{"user_metadata":{"account_type":"VIP", "vip":null}}\' https://%TEST%.auth0.com/api/v2/users/auth0%7C'.$user;
 
 exec($cmd, $result);
 //echo user email upon completion
@@ -147,4 +148,107 @@ echo('done!');
 
 
 
+<!-- ///888888888888888888888888888888888888888// -->
+
+
+
+
+<!-- ///888888888888888888888888888888888888888// -->
+
+
+<!-- get all posts based on metadata value-->
+
+
+<?php
+function get_meta_values( $meta_key,  $post_type = 'post' ) {
+
+    $posts = get_posts(
+        array(
+            'post_type' => $post_type,
+            'meta_key' => $meta_key,
+            'posts_per_page' => -1,
+        )
+    );
+
+    $meta_values = array();
+    foreach( $posts as $post ) {
+        $meta_values[] = get_post_meta( $post->ID, $meta_key, true );
+    }
+
+    return $meta_values;
+
+}
+
+$meta_values = get_meta_values( $meta_key, $post_type );
+
+
+?>
+<!-- ///888888888888888888888888888888888888888// -->
+
+<!-- ///888888888888888888888888888888888888888// -->
+<!-- ///schedules function to be run in 30 seconds, add to functions.php -->
+<?php
+function do_this_in_an_hour() {
+
+error_log('cron working front page');
+}
+add_action( 'my_new_event','do_this_in_an_hour' );
+
+
+wp_schedule_single_event( time() + 30, 'my_new_event' );
+
+?>
+<!-- ///888888888888888888888888888888888888888// -->
+
+
+<!-- ///888888888888888888888888888888888888888// -->
+<!--///THIS UPDATES AND COMBINES TAGS THAT ARE CLOSE DUPLICATES
+
+wp_term_relationships has object_id which is a post id
+term_taxonomy_id is the id from wp_terms
+
+so, to update a tag in wp_terms
+
+UPDATE `%TEST%`.`wp_terms` SET `name`='name' WHERE `term_id`='ID from slug';
+
+ex.
+UPDATE `%TEST%`.`wp_terms` SET `name`='Wind Power' WHERE `term_id`='290';
+
+
+so then one of the duplicates needs to be deleted
+
+
+DELETE FROM `%TEST%`.`wp_terms` WHERE `term_id`='408';
+
+
+then all connections to it need to be changed in wp_term_relationships
+
+
+UPDATE `%TEST%`.`wp_term_relationships` SET `term_taxonomy_id`='50' WHERE `term_taxonomy_id`='530';
+
+
+This statement combines 2 ids(530,571) into a base id (50)-->
+<?php
+SELECT COUNT(*) FROM %TEST%.wp_term_relationships WHERE term_taxonomy_id=50
+DELETE FROM `%TEST%`.`wp_terms` WHERE `term_id`='571';
+DELETE FROM `%TEST%`.`wp_terms` WHERE `term_id`='530';
+UPDATE IGNORE `%TEST%`.`wp_term_relationships` SET `term_taxonomy_id`='50' WHERE `term_taxonomy_id`='571';
+UPDATE IGNORE `%TEST%`.`wp_term_relationships` SET `term_taxonomy_id`='50' WHERE `term_taxonomy_id`='530';
+DELETE FROM `%TEST%`.`wp_term_relationships` WHERE `term_taxonomy_id`='530';
+DELETE FROM `%TEST%`.`wp_term_relationships` WHERE `term_taxonomy_id`='571';
+SELECT COUNT(*) FROM %TEST%.wp_term_relationships WHERE term_taxonomy_id=50
+
+
+
+//This statement combines a child(530) into a parent(50)
+
+SELECT COUNT(*) FROM %TEST%.wp_term_relationships WHERE term_taxonomy_id=50
+DELETE FROM `%TEST%`.`wp_terms` WHERE `term_id`='530';
+UPDATE IGNORE `%TEST%`.`wp_term_relationships` SET `term_taxonomy_id`='50' WHERE `term_taxonomy_id`='530';
+DELETE FROM `%TEST%`.`wp_term_relationships` WHERE `term_taxonomy_id`='530';
+SELECT COUNT(*) FROM %TEST%.wp_term_relationships WHERE term_taxonomy_id=50
+
+?>
+
+<!-- ///888888888888888888888888888888888888888// -->
 <!-- ///888888888888888888888888888888888888888// -->
